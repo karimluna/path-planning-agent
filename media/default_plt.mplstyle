@@ -1,0 +1,36 @@
+# Text and Font Settings
+text.usetex: False
+axes.labelsize: 12
+xtick.labelsize: 11
+ytick.labelsize: 11
+
+# Figure and Axes Background Colors
+figure.facecolor: white       # Background color around the plot
+axes.facecolor: white         # Background color inside the plot area
+
+# Text, Axis, and Spine Colors
+text.color: black             # General text color
+axes.edgecolor: black         # Color of the plot border (spines)
+axes.labelcolor: black        # Color of the axis labels
+xtick.color: black            # Color of x-axis ticks and labels
+ytick.color: black            # Color of y-axis ticks and labels
+
+# Axis and Spine Settings
+axes.spines.top: True
+axes.spines.right: True
+axes.spines.left: True
+axes.spines.bottom: True
+
+# Line and Grid Settings
+lines.linewidth: 1.4
+axes.grid: True
+grid.color: "#cccccc"         # Grid line color (hex or named color)
+grid.alpha: 0.25
+grid.linestyle: --
+
+# Default Line Color Cycle (order in which line colors are used)
+axes.prop_cycle: cycler('color', ['1f77b4', 'ff7f0e', '2ca02c', 'd62728', '9467bd', '8c564b'])
+
+# Save Settings
+savefig.dpi: 300
+savefig.facecolor: figure     # Uses figure.facecolor when saving the image
