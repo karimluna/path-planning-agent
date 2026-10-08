@@ -28,7 +28,19 @@ class ModelBase(ABC):
         return rk4_step(self.f, x, u, dt)
 
 class KinematicBase(ModelBase):
-    """u is a velocity-level input"""
+    """
+    u is a velocity-level input
+    
+    Must return a tuple (xdot, diagnositics).
+    """
+    ...
+
+class DynamicBase(ModelBase):
+    """
+    u is any input involving forces or movement.
+
+    Must return a tuple (xdot, diagnostics).
+    """
     ...
 
 

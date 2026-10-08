@@ -10,6 +10,7 @@ from matplotlib.gridspec import GridSpec
 from pydantic import Field
 from pydantic.dataclasses import dataclass
 
+from models.base import Controller
 # my style!
 plt.style.use("media/default_plt.mplstyle")
 
@@ -77,13 +78,18 @@ class AnimTrajectory:
         self.ax_u.set_xlim(0, p.window)
         self.ax_u.set_xlabel("t [s]")
         self.ax_u.set_ylabel("u")
-        self.ax_u.legend(loc="upper left")
+        self.ax_u.legend(loc="upper left")   
         self.ax_u.grid(True)
 
         self.diag_txt = self.ax_d.text(0.0, 1.0, "", va="top",
                                        family="monospace", fontsize=10)
         self.fig.suptitle("↑/↓ u0   ←/→ u1   space: zero   r: reset", fontsize=9)
         self.fig.canvas.mpl_connect("key_press_event", self._on_key)
+        self.fig.canvas.mpl_connect("key_release_event", self._on_key_release)
+
+    def _on_key_release(self, event) -> None:
+        if hasattr(self.controller, "on_key_release"):
+            self.controller.on_key_release(event)
 
     def _on_key(self, event) -> None:
         if event.key == "r":

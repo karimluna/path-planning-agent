@@ -1,15 +1,27 @@
-from models.kinematic.unicycle import Unicycle
-from models.kinematic.ddr import DifferentialDriveRobot
-from models.kinematic.car import SimpleCar
+from models.kinematic.unicycle import (
+    Unicycle, 
+    BetterUnicycle, 
+    EvenBetterUnicycle
+)
+from models.kinematic.ddr import (
+    DifferentialDriveRobot,
+    SmoothDDR
+)
+from models.kinematic.car import (
+    SimpleCar,
+    ContinuousSteeringCar,
+    SteeringAccelCar
+)
 
 
 from models.controllers.keyboard import KeyboardController
 from utils.plots import AnimParams, AnimTrajectory
+import numpy as np
 
 
 def main():
-    model = SimpleCar()
-    ctrl = KeyboardController(model.n_control, du=0.25)
+    model = SteeringAccelCar()
+    ctrl = KeyboardController(model.n_control, amp=np.array([2.0, 0.4]))
     AnimTrajectory(model, ctrl, AnimParams()).show()
 
 
