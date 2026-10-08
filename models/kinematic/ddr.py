@@ -19,7 +19,7 @@ class DifferentialDriveRobot(KinematicBase):
         diag = {
             "x [m]": x[0],
             "y [m]": x[1],
-            "v [m/s]": self.r*(ur+ul)/2,
+            "v [m/s]": self.r * (ur + ul)/ 2,
             "omega [rad/s]": self.r*(ur-ul)/self.L,
             "theta [deg]": np.degrees(np.arctan2(np.sin(theta), np.cos(theta))),
             "ul [rad/s]": ul,
@@ -51,7 +51,7 @@ class SmoothDDR(KinematicBase):
             "wr [rad/s]": wr,
             "al [rad/s]": ul,
             "ar [rad/s]": ur,
-            "v [m/s]:": self.r / 2 * (wl + wr),
+            "v [m/s]": self.r / 2 * (wl + wr),
             "omega [rad/s]": self.r/self.L*(wr-wl),
         }
         return xdot, diag

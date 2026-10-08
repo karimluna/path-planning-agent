@@ -62,6 +62,8 @@ class AnimTrajectory:
         self.controller = controller
         x0s = x0s or [None] * len(models)
         u_maxs = u_maxs or [p.u_max] * len(models)
+        if len(u_maxs) != len(models) or len(x0s) != len(models):
+            raise ValueError("u_maxs and x0s need one entry per model.")
         colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
         self.runs = [
             _Run(m, x0, um, colors[i % len(colors)], p.plot_keys)

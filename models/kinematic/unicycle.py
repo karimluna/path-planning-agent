@@ -1,7 +1,11 @@
 import numpy as np
 
 from models.base import KinematicBase
-from utils.config_space import _wrap_deg
+
+
+def _wrap_deg(theta):
+    '''Return angle in degrees rather than radians.'''
+    return np.degrees(np.arctan2(np.sin(theta), np.cos(theta)))
 
 class Unicycle(KinematicBase):
     n_state, n_control = 3, 2            # x = [x, y, θ],  u = [v, ω]
@@ -25,7 +29,6 @@ class BetterUnicycle(KinematicBase):
     n_state, n_control = 4, 2            # x = [x, y, θ, s],  u = [a, ω]
     control_names = ("a", "ω")
     S_MAX = 3.0
-    C_S = 0.5                            # speed drag [1/s]
 
     def f(self, x, u):
         theta, s = x[2], x[3]
@@ -47,13 +50,12 @@ class EvenBetterUnicycle(KinematicBase):
     n_state, n_control = 5, 2            # x = [x, y, θ, s, ω],  u = [a, α]
     control_names = ("a", "α")
     S_MAX, W_MAX = 3.0, 2.0
-    C_S, C_W = 0.5, 3.0                  # drag on speed / yaw rate [1/s]
 
     def f(self, x, u):
         theta, s, w = x[2], x[3], x[4]
         a, alpha = u
         xdot = np.array([s*np.cos(theta), s*np.sin(theta), w,
-                         a - self.C_S*s, alpha - self.C_W*w])
+                         a, alpha])
         diag = {
             "x [m]": x[0], 
             "y [m]": x[1], 
