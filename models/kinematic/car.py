@@ -11,15 +11,16 @@ class SimpleCar(KinematicBase):
     def f(self, x, u):
         theta  = x[2]
         v, w   = u
-        tan_w = np.tan(w)
-        xdot   = np.array([v*np.cos(theta), v*np.sin(theta), (v/self.L)*tan_w])
+        tan_d = np.tan(w)
+        xdot   = np.array([v*np.cos(theta), v*np.sin(theta), (v/self.L)*tan_d])
         diag = {
             "x [m]": x[0],
             "y [m]": x[1],
             "theta [deg]": np.degrees(np.arctan2(np.sin(theta), np.cos(theta))),
             "v [m/s]": v,
+            "omega [rad/s]": v*tan_d/self.L,
             "w [deg]": np.degrees(w),
-            "R [m]": self.L / tan_w if abs(tan_w) > 1e-9 else float("inf"),
+            "R [m]": self.L / tan_d if abs(tan_d) > 1e-9 else float("inf"),
         }
         return xdot, diag
 
@@ -27,7 +28,7 @@ class SimpleCar(KinematicBase):
 class ContinuousSteeringCar(KinematicBase):
     n_state, n_control = 5, 2          # x = [x, y, θ, φ, s], u = [u_a, u_ω]
     control_names = ("a", "ω_φ")
-    PHI_MAX, S_MAX = 0.6, 3.0
+    PHI_MAX, S_MAX = 1.0, 3.0
 
     def __init__(self, L: float = 3.0) -> None:
         self.L = L
@@ -56,7 +57,7 @@ class ContinuousSteeringCar(KinematicBase):
 class SteeringAccelCar(KinematicBase):
     n_state, n_control = 6, 2          # x = [x, y, θ, φ, ω, s], u = [u_a, u_α]
     control_names = ("a", "α")
-    PHI_MAX, S_MAX = 0.6, 3.0
+    PHI_MAX, S_MAX = 0.89, 3.0
 
     def __init__(self, L: float = 3.0) -> None:
         self.L = L
@@ -64,13 +65,15 @@ class SteeringAccelCar(KinematicBase):
     def f(self, x, u):
         theta, phi, w, s = x[2], x[3], x[4], x[5]
         a, alpha = u
-        xdot = np.array([s*np.cos(theta), s*np.sin(theta), s*np.tan(phi)/self.L, w, alpha, a])
+        tan_d = np.tan(phi)
+        xdot = np.array([s*np.cos(theta), s*np.sin(theta), s*tan_d/self.L, w, alpha, a])
         diag = {
             "x [m]": x[0], "y [m]": x[1],
             "theta [deg]": np.degrees(np.arctan2(np.sin(theta), np.cos(theta))),
             "phi [deg]": np.degrees(phi),
-            "w [rad/s]": w,
-            "s [m/s]": s,
+            "dphi [rad/s]": w,
+            "v [m/s]": s,
+            "omega [rad/s]": s*tan_d/self.L,
             "a [m/s²]": a,
             "alpha [rad/s²]": alpha,
         }

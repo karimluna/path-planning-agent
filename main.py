@@ -20,9 +20,12 @@ import numpy as np
 
 
 def main():
-    model = SteeringAccelCar()
-    ctrl = KeyboardController(model.n_control, amp=np.array([2.0, 0.4]))
-    AnimTrajectory(model, ctrl, AnimParams()).show()
+    models = [SimpleCar(), SteeringAccelCar()]      
+    ctrl = KeyboardController(2, amp=np.array([2.0, 0.4]))
+    AnimTrajectory(
+        models, ctrl, AnimParams(follow=True, view=15),
+        u_maxs=[np.array([2.0, 0.6]), np.array([2.0, 0.6])],   # limit s per model
+    ).show()
 
 
 if __name__ == "__main__":

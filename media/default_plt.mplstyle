@@ -1,5 +1,5 @@
 # Text and Font Settings
-text.usetex: False
+text.usetex: True
 axes.labelsize: 12
 xtick.labelsize: 11
 ytick.labelsize: 11
@@ -33,4 +33,4 @@ axes.prop_cycle: cycler('color', ['1f77b4', 'ff7f0e', '2ca02c', 'd62728', '9467b
 
 # Save Settings
 savefig.dpi: 300
-savefig.facecolor: figure     # Uses figure.facecolor when saving the image
+savefig.facecolor: auto

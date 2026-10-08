@@ -1,7 +1,5 @@
 import numpy as np
 
-def rot2quat(angle: int):
-    '''
-    Transform rotations to quaternions
-    '''
-    return
+def _wrap_deg(theta):
+    '''Return angle in degrees rather than radians.'''
+    return np.degrees(np.arctan2(np.sin(theta), np.cos(theta)))

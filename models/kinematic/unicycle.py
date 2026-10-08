@@ -1,58 +1,72 @@
 import numpy as np
+
 from models.base import KinematicBase
+from utils.config_space import _wrap_deg
 
 class Unicycle(KinematicBase):
-    n_state, n_control = 3, 2
+    n_state, n_control = 3, 2            # x = [x, y, θ],  u = [v, ω]
     control_names = ("v", "ω")
 
     def f(self, x, u):
-        theta    = x[2]
+        theta = x[2]
         v, w = u
-        xdot     = np.array([v*np.cos(theta), v*np.sin(theta), w])
-        diag     = {
-            "x [m]": x[0],
-            "y [m]": x[1],
-            "theta [deg]": np.degrees(np.arctan2(np.sin(theta), np.cos(theta))),
+        xdot = np.array([v*np.cos(theta), v*np.sin(theta), w])
+        diag = {
+            "x [m]": x[0], 
+            "y [m]": x[1], 
+            "theta [deg]": _wrap_deg(theta),
             "v [m/s]": v, 
-            "w [rad/s]": w,
+            "omega [rad/s]": w,
         }
         return xdot, diag
 
 
 class BetterUnicycle(KinematicBase):
-    n_state, n_control = 4, 2
-    control_names = ("u_w", "u_a")
+    n_state, n_control = 4, 2            # x = [x, y, θ, s],  u = [a, ω]
+    control_names = ("a", "ω")
+    S_MAX = 3.0
+    C_S = 0.5                            # speed drag [1/s]
 
     def f(self, x, u):
-        s        = x[3]
-        theta    = x[2]
-        u_w, u_a = u
-        xdot     = np.array([s*np.cos(theta), s*np.sin(theta), u_w, u_a])
-        diag     = {
-            "x [m]": x[0],
-            "y [m]": x[1],
-            "theta [deg]": np.degrees(np.arctan2(np.sin(theta), np.cos(theta))),
-            "u_w [m/s]": u_w, 
-            "u_a [rad/s]": u_a,
+        theta, s = x[2], x[3]
+        a, w = u
+        xdot = np.array([s*np.cos(theta), s*np.sin(theta), w, a - self.C_S*s])
+        diag = {
+            "x [m]": x[0], "y [m]": x[1], "theta [deg]": _wrap_deg(theta),
+            "v [m/s]": s, "omega [rad/s]": w, "a [m/s²]": a,
         }
         return xdot, diag
-    
+
+    def step(self, x, u, dt):
+        x_next, diag = super().step(x, u, dt)
+        x_next[3] = np.clip(x_next[3], -self.S_MAX, self.S_MAX)
+        return x_next, diag
+
 
 class EvenBetterUnicycle(KinematicBase):
-    n_state, n_control = 5, 2
-    control_names = ("u_w", "u_a")
+    n_state, n_control = 5, 2            # x = [x, y, θ, s, ω],  u = [a, α]
+    control_names = ("a", "α")
+    S_MAX, W_MAX = 3.0, 2.0
+    C_S, C_W = 0.5, 3.0                  # drag on speed / yaw rate [1/s]
 
     def f(self, x, u):
-        omega    = x[4]
-        s        = x[3]
-        theta    = x[2]
-        u_w, u_a = u
-        xdot     = np.array([s*np.cos(theta), s*np.sin(theta), omega, u_w, u_a])
-        diag     = {
-            "x [m]": x[0],
-            "y [m]": x[1],
-            "theta [deg]": np.degrees(np.arctan2(np.sin(theta), np.cos(theta))),
-            "u_w [m/s]": u_w, 
-            "u_a [rad/s]": u_a,
+        theta, s, w = x[2], x[3], x[4]
+        a, alpha = u
+        xdot = np.array([s*np.cos(theta), s*np.sin(theta), w,
+                         a - self.C_S*s, alpha - self.C_W*w])
+        diag = {
+            "x [m]": x[0], 
+            "y [m]": x[1], 
+            "theta [deg]": _wrap_deg(theta),
+            "v [m/s]": s, 
+            "omega [rad/s]": w,
+            "a [m/s²]": a, 
+            "alpha [rad/s²]": alpha,
         }
         return xdot, diag
+
+    def step(self, x, u, dt):
+        x_next, diag = super().step(x, u, dt)
+        x_next[3] = np.clip(x_next[3], -self.S_MAX, self.S_MAX)
+        x_next[4] = np.clip(x_next[4], -self.W_MAX, self.W_MAX)
+        return x_next, diag
