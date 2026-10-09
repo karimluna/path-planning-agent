@@ -25,13 +25,13 @@ FAMILIES = {
     "ddr": dict(
         models=lambda: [DifferentialDriveRobot(), SmoothDDR()],
         amp=[10.0, 10.0],
-        u_maxs=[[10.0, 10.0], [10.0, 10.0]],
+        u_maxs=[[10.0, 10.0], [2.0, 2.0]],
         view=10,
     ),
     "car": dict(
-        models= lambda: [SimpleCar(), ContinuousSteeringCar(), SteeringAccelCar()],
+        models= lambda: [SimpleCar(), SteeringAccelCar()],
         amp=[2.0, 0.4],
-        u_maxs=[[2.0, 0.6], [2.0, 1.0], [2.0, 2.0]],
+        u_maxs=[[2.0, 0.6], [2.0, 2.0]],
         view=10.0
     )
 }

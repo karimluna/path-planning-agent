@@ -41,7 +41,7 @@ class ContinuousSteeringCar(KinematicBase):
             "x [m]": x[0], "y [m]": x[1],
             "theta [deg]": np.degrees(np.arctan2(np.sin(theta), np.cos(theta))),
             "phi [deg]": np.degrees(phi),
-            "s [m/s]": s,
+            "v [m/s]": s,
             "a [m/s²]": a,
             "u_w [rad/s]": u_w,
         }

@@ -30,7 +30,7 @@ class DifferentialDriveRobot(KinematicBase):
 
 class SmoothDDR(KinematicBase):
     n_state, n_control = 5, 2
-    control_names = ("ul", "ur")
+    control_names = ("al", "ar")
 
     def __init__(self, L: float = 0.5, r: float = 0.1) -> None:
         self.L = L
