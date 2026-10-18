@@ -1,5 +1,5 @@
 # Text and Font Settings
-text.usetex: True
+text.usetex: False
 axes.labelsize: 12
 xtick.labelsize: 11
 ytick.labelsize: 11

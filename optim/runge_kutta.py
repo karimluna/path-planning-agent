@@ -17,3 +17,4 @@ def rk4_step(
     k4, _    = fun(state + dt * k3, controls)
     next_state = state + (dt / 6.0) * (k1 + 2*k2 + 2*k3 + k4)
     return next_state, diag
+

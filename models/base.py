@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Any
 import numpy as np
-from optim.rk4 import rk4_step
+from optim.runge_kutta import rk4_step
+from guolao import runge_kutta
 from typing import Protocol
 
 State = np.ndarray[tuple[Any, ...], np.dtype[Any]]
@@ -25,7 +26,8 @@ class ModelBase(ABC):
         """
         Discrete one-step integration.
         """
-        return rk4_step(self.f, x, u, dt)
+        x_next, diag = runge_kutta.rk4_step(self.f, x, u, dt)
+        return np.array(x_next), diag
 
 class KinematicBase(ModelBase):
     """

@@ -6,7 +6,7 @@ import numpy as np
 
 def main():
     from models.kinematic.car import SimpleCar
-    model = SimpleCar
+    model = SimpleCar()
     ctrl = KeyboardController(2, amp=np.array([2.0, 0.4]))
     AnimTrajectory(
         model, ctrl, AnimParams(follow=True, view=15),

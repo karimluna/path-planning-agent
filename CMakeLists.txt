@@ -22,10 +22,10 @@ find_package(pybind11 CONFIG REQUIRED)
 # direct all output compiled binaries into guolao 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/guolao)
 
-pybind11_add_module(example tests/example.cpp)
+pybind11_add_module(runge_kutta optim/runge_kutta.cpp)
 
 # profiling build flag toggle
 option(ENABLE_PROFILING "Include debug symbols and frame pointers for profilers" OFF)
 if(ENABLE_PROFILING)
-    target_compile_options(example PRIVATE -g -fno-omit-frame-pointer)
+    target_compile_options(runge_kutta PRIVATE -g -fno-omit-frame-pointer)
 endif()

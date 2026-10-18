@@ -1,6 +1,7 @@
 import numpy as np
 from models.base import KinematicBase
 
+
 class SimpleCar(KinematicBase):
     n_state, n_control = 3, 2
     control_names = ("v", "ω")
