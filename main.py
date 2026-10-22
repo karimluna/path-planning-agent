@@ -1,18 +1,39 @@
-from models.controllers.keyboard import KeyboardController
-from utils.plots import AnimParams, AnimTrajectory
-from utils.config_space import run
 import numpy as np
+from models.controllers.pid import PID
+from models.controllers.tracking import PointTracker, circle, static_point
+from models.any.car import (
+    SimpleCar,
+    ContinuousSteeringCar,
+    SteeringAccelCar,
+    SkiddingCar, 
+    )
+from models.any.ddr import (
+    DifferentialDriveRobot,
+    SmoothDDR
+)
+from models.any.unicycle import (
+    Unicycle, 
+    BetterUnicycle,
+    EvenBetterUnicycle
+)
+from utils.plots import AnimParams, AnimTrajectory
 
 
 def main():
-    from models.kinematic.car import SimpleCar
-    model = SimpleCar()
-    ctrl = KeyboardController(2, amp=np.array([2.0, 0.4]))
+    # model = SimpleCar()
+    model = EvenBetterUnicycle()
+    ref = static_point([-20, 10])
+    ctrl = PointTracker(model, ref, PID(kp=2.0, kd=0.5), d=0.8, v_max=3.0)
     AnimTrajectory(
-        model, ctrl, AnimParams(follow=True, view=15),
-        u_maxs=[np.array([2.0, 0.6])],   # limit s per model
+        model, ctrl,
+        AnimParams(follow=True, view=20),
+        # For nonholonomic constraint systems use u2 ∈ [0.5, 1.0) 
+        # except for SkiddingCar, study more 
+        u_maxs=[np.array([10., 10.])], ref=ref,
     ).show()
 
 
 if __name__ == "__main__":
     main()
+
+    

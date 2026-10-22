@@ -54,12 +54,13 @@ class _Run:
 
 class AnimTrajectory:
     def __init__(self, models, controller: Controller,
-                 params: AnimParams | None = None, x0s=None, u_maxs=None) -> None:
+                 params: AnimParams | None = None, x0s=None, u_maxs=None, ref=None) -> None:
         models = [models] if hasattr(models, "step") else list(models)
         if len({m.n_control for m in models}) != 1:
             raise ValueError("All compared models must have the same n_control")
         self.params = p = params or AnimParams()
         self.controller = controller
+        self.ref = ref
         x0s = x0s or [None] * len(models)
         u_maxs = u_maxs or [p.u_max] * len(models)
         if len(u_maxs) != len(models) or len(x0s) != len(models):
@@ -103,6 +104,8 @@ class AnimTrajectory:
         self.ax_xy.set_xlabel("x [m]")
         self.ax_xy.set_ylabel("y [m]")
         self.ax_xy.grid(True)
+        self.target = (self.ax_xy.plot([],[], "kx", ms=10, mew=2, label="target")[0]
+                       if self.ref else None)
         self.ax_xy.legend(loc="upper left")
 
         first = self.runs[0].model
@@ -169,6 +172,9 @@ class AnimTrajectory:
             r.robot.set_data([x[0]], [x[1]])
             r.heading.set_data([x[0], x[0] + p.head * np.cos(x[2])],
                                [x[1], x[1] + p.head * np.sin(x[2])])
+        if self.target is not None:
+            r0 = self.ref(self.t)[0]
+            self.target.set_data([r0[0]], [r0[1]])
         if p.follow:
             cx, cy = np.mean([r.x[:2] for r in self.runs], axis=0)
             self.ax_xy.set_xlim(cx - p.view, cx + p.view)

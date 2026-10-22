@@ -1,6 +1,7 @@
 import numpy as np
+from models.base import Controller
 
-class KeyboardController:
+class KeyboardController(Controller):
     """Open-loop teleop: u = ±amp while a key is held, 0 otherwise."""
     KEYMAP = {"up": (0, +1), "down": (0, -1), "left": (1, +1), "right": (1, -1)}
 

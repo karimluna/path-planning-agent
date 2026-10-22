@@ -33,7 +33,7 @@ class BetterUnicycle(KinematicBase):
     def f(self, x, u):
         theta, s = x[2], x[3]
         a, w = u
-        xdot = np.array([s*np.cos(theta), s*np.sin(theta), w, a - self.C_S*s])
+        xdot = np.array([s*np.cos(theta), s*np.sin(theta), w, a])
         diag = {
             "x [m]": x[0], "y [m]": x[1], "theta [deg]": _wrap_deg(theta),
             "v [m/s]": s, "omega [rad/s]": w, "a [m/s²]": a,

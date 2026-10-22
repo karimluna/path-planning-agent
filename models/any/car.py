@@ -1,5 +1,5 @@
 import numpy as np
-from models.base import KinematicBase
+from models.base import KinematicBase, DynamicBase
 
 
 class SimpleCar(KinematicBase):
@@ -49,6 +49,7 @@ class ContinuousSteeringCar(KinematicBase):
         return xdot, diag
 
     def step(self, x, u, dt):
+        '''Step is modified to clip added integrators.'''
         x_next, diag = super().step(x, u, dt)
         x_next[3] = np.clip(x_next[3], -self.PHI_MAX, self.PHI_MAX)
         x_next[4] = np.clip(x_next[4], -self.S_MAX, self.S_MAX)
@@ -87,3 +88,44 @@ class SteeringAccelCar(KinematicBase):
             x_next[4] = 0.0
         x_next[5] = np.clip(x_next[5], -self.S_MAX, self.S_MAX)
         return x_next, diag
+
+
+class SkiddingCar(DynamicBase):
+    n_state, n_control = 5, 1
+
+    def __init__(
+            self, m: float = 1460, L: float = 3.0,
+            cf: int = 17_000, cr: int = 20_000, a: float = 1.2,
+            b: float = 1.5, I: float = 2170, s: float = 27) -> None:
+        self.m  = m     # [kg]
+        self.cf = cf    # [-]
+        self.cr = cr    # [-]
+        self.a  = a     # [m]
+        self.b  = b     # [m]
+        self.L  = self.a + self.b # [m]
+        self.I  = I     # [kg/m²]
+        self.s  = s     # [m/s]
+
+    def f(self, x, u): 
+        theta, omega, v = x[2], x[3], x[4] # heading, angular velocity, lateral velocity
+        u_phi = u[0]
+        ff = self.cf * ((v  + self.a * omega ) / self.s + u_phi) # front tire forces
+        fr = self.cr * (v - self.b * omega) / self.s # rear tire forces
+        xdot = np.array([
+            self.s * np.cos(theta) - v * np.sin(theta), 
+            self.s * np.sin(theta) + v * np.cos(theta),
+            omega,
+            (self.a * ff - self.b * fr) / self.I,
+            -self.s * omega + (ff + fr) / self.m
+        ])
+        diag = {
+            "x [m]": x[0], "y [m]": x[1],
+            "theta [deg]": np.degrees(np.arctan2(np.sin(theta), np.cos(theta))),
+            "v [m/s]": np.hypot(self.s, v),
+            "omega [rad/s]": omega,
+            "beta [deg]": np.degrees(np.arctan2(v, self.s)),   # sideslip angle
+            "Ff [N]": ff, "Fr [N]": fr,
+        }
+        return xdot, diag
+        
+
