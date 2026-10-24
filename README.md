@@ -13,3 +13,10 @@ Examples
 | :---: | :---: |
 | <img src="media/cont_steering_car.gif" alt="Simulation 1" width="100%"> | <img src="media/better_unicycle.gif" alt="Simulation 2" width="100%"> |
 | <img src="media/smooth_ddr.gif" alt="Simulation 3" width="100%"> | <img src="media/steering_accel_car.gif" alt="Simulation 4" width="100%"> |
+
+To run a model there is an argument parser:
+
+```bash
+python main.py ddr --circle 0 5 5 0.15               # follow a circle: centre x y, radius, rad/s
+python main.py unicycle --start -5 3 --heading 90    # start at (-5, 3) facing +y
+```
