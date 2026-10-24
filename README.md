@@ -9,10 +9,13 @@ In control theory, a system has two degrees of freedom when you can tune its res
 
 Examples
 
-2DOF | 2DOF (replace this col later) |
+2DOF | 2DOF  |
 | :---: | :---: |
 | <img src="media/cont_steering_car.gif" alt="Simulation 1" width="100%"> | <img src="media/better_unicycle.gif" alt="Simulation 2" width="100%"> |
 | <img src="media/smooth_ddr.gif" alt="Simulation 3" width="100%"> | <img src="media/steering_accel_car.gif" alt="Simulation 4" width="100%"> |
+| <img src="media/simple_car.gif" alt="Simulation 3" width="100%"> | <img src="media/even_better_unicycle.gif" alt="Simulation 4" width="100%"> |
+
+
 
 To run a model there is an argument parser:
 
@@ -20,3 +23,5 @@ To run a model there is an argument parser:
 python main.py ddr --circle 0 5 5 0.15               # follow a circle: centre x y, radius, rad/s
 python main.py unicycle --start -5 3 --heading 90    # start at (-5, 3) facing +y
 ```
+
+We also feature the usage and (continuous) development of numerical methods and part of the dynamics written in C++ and (in the future) in CUDA. As the project evolves we will be implementing more efficient algorithms.
