@@ -24,11 +24,11 @@ class AnimParams:
     view: float = Field(default=10.0, description="Half-width of the view [m]")
     head: float = Field(default=1.0, description="Heading line length [m]")
     follow: bool = Field(default=False, description="Camera follows the robot(s)")
-    steps_per_frame: int = Field(default=1, description="Sim steps per drawn frame")
-    trail: int = Field(default=2000, description="Max trail points drawn")
-    plot_keys: tuple[str, str] = Field(
-        default=("v [m/s]", "omega [rad/s]"),
-        description="diag keys shown in the two side plots",
+    steps_per_frame: int = Field(default=2, description="Sim steps per drawn frame")
+    trail: int = Field(default=100, description="Max trail points drawn")
+    plot_keys: tuple[str, ...] = Field(
+        default=(),
+        description="diag keys shown in the side plots. If empty, takes the first 5 keys from diag.",
     )
     u_max: np.ndarray = Field(
         default_factory=lambda: np.array([2.0, 2.0]),
@@ -65,11 +65,21 @@ class AnimTrajectory:
         u_maxs = u_maxs or [p.u_max] * len(models)
         if len(u_maxs) != len(models) or len(x0s) != len(models):
             raise ValueError("u_maxs and x0s need one entry per model.")
+        
+        # get plot keys from the first model's diag 
+        if not p.plot_keys:
+            test_x = np.zeros(models[0].n_state) if x0s[0] is None else x0s[0]
+            test_u = np.zeros(models[0].n_control)
+            # Evaluate f just to inspect the keys
+            _, test_diag = models[0].f(test_x, test_u)
+            # Take up to the first 5 keys found in diag
+            p.plot_keys = tuple(list(test_diag.keys())[:5])
+        
         colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
         self.runs = [
             _Run(m, x0, um, colors[i % len(colors)], p.plot_keys)
             for i, (m, x0, um) in enumerate(zip(models, x0s, u_maxs))
-        ]
+        ] 
         self._build_figure()
         self.reset()
 
@@ -79,25 +89,43 @@ class AnimTrajectory:
         for r in self.runs:
             r.reset()
         self.controller.reset()
-        for ax in (self.ax_a, self.ax_b):
+        for ax in (self.ax_a, self.ax_b, self.ax_c, self.ax_d, self.ax_e):
             ax.set_ylim(-1, 1)
 
     def _build_figure(self) -> None:
         p = self.params
-        self.fig = plt.figure(figsize=(11, 7))
-        gs = GridSpec(4, 2, width_ratios=[2, 1], figure=self.fig)
-        self.ax_xy = self.fig.add_subplot(gs[0:3, 0])
-        self.ax_u = self.fig.add_subplot(gs[3, 0])
-        self.ax_a = self.fig.add_subplot(gs[0:2, 1], sharex=self.ax_u)
-        self.ax_b = self.fig.add_subplot(gs[2:4, 1], sharex=self.ax_u)
+        self.fig = plt.figure(figsize=(12, 12))
+        gs = GridSpec(10, 2, width_ratios=[2, 1], figure=self.fig)
+        self.ax_xy = self.fig.add_subplot(gs[0:8, 0])
+        self.ax_u = self.fig.add_subplot(gs[8:10, 0])
+        self.ax_a = self.fig.add_subplot(gs[0:2, 1])
+        
+        # We might have fewer than 5 keys, map axes accordingly
+        self.side_axes = [self.ax_a]
+        axes_slots = [gs[2:4, 1], gs[4:6, 1], gs[6:8, 1], gs[8:10, 1]]
+        for i in range(1, 5):
+            self.side_axes.append(self.fig.add_subplot(axes_slots[i-1], sharex=self.ax_a))
+        
+        self.ax_b, self.ax_c, self.ax_d, self.ax_e = self.side_axes[1:5]
+        
         self.ax_a.tick_params(labelbottom=False)
 
-        for r in self.runs:
+        colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+        
+        for i, r in enumerate(self.runs):
             (r.path,) = self.ax_xy.plot([], [], lw=1.5, color=r.color, label=r.name)
             (r.robot,) = self.ax_xy.plot([], [], "o", color=r.color)
             (r.heading,) = self.ax_xy.plot([], [], "-", lw=2, color=r.color)
-            r.lines = [ax.plot([], [], color=r.color, label=r.name)[0]
-                       for ax in (self.ax_a, self.ax_b)]
+            
+            # if there's only 1 model, color the right plots using the 5-color palette
+            if len(self.runs) == 1:
+                r.lines = [ax.plot([], [], color=colors[j % len(colors)], label=r.name)[0]
+                           for j, ax in enumerate(self.side_axes[:len(p.plot_keys)])]
+            # if multiple models are being compared, keep them colored by model to avoid confusion
+            else:
+                r.lines = [ax.plot([], [], color=r.color, label=r.name)[0]
+                           for ax in self.side_axes[:len(p.plot_keys)]]
+            
         self.ax_xy.set_aspect("equal", adjustable="box")
         self.ax_xy.set_xlim(-p.view, p.view)
         self.ax_xy.set_ylim(-p.view, p.view)
@@ -120,10 +148,12 @@ class AnimTrajectory:
         self.ax_u.legend(loc="upper left")
         self.ax_u.grid(True)
 
-        for ax, k in zip((self.ax_a, self.ax_b), p.plot_keys):
+        # apply labels dynamically based on the keys we pulled
+        for ax, k in zip(self.side_axes, p.plot_keys):
             ax.set_ylabel(k)
             ax.grid(True)
-        self.ax_b.set_xlabel("t [s]")
+            
+        self.side_axes[-1].set_xlabel("t [s]")
         if len(self.runs) > 1:
             self.ax_a.legend(loc="upper left")
 
@@ -154,11 +184,12 @@ class AnimTrajectory:
     def update(self, _frame):
         p = self.params
         for _ in range(p.steps_per_frame):
-            self.ts.append(self.t)               # signals are sampled at the start of the step
+            self.ts.append(self.t) 
             for i, r in enumerate(self.runs):
                 u = np.clip(self.controller(self.t, r.x), -r.u_max, r.u_max)
                 r.x, diag = r.model.step(r.x, u, p.dt)
                 r.traj.append(r.x[:2].copy())
+                # save data for the keys we decided to plot
                 for k in p.plot_keys:
                     r.sig[k].append(diag[k])
                 if i == 0:
@@ -172,9 +203,13 @@ class AnimTrajectory:
             r.robot.set_data([x[0]], [x[1]])
             r.heading.set_data([x[0], x[0] + p.head * np.cos(x[2])],
                                [x[1], x[1] + p.head * np.sin(x[2])])
+            
         if self.target is not None:
             r0 = self.ref(self.t)[0]
+            self.ax_a.axhline(r0[0], color='gray', ls='--')
+            self.ax_b.axhline(r0[1], color='gray', ls='--')
             self.target.set_data([r0[0]], [r0[1]])
+            
         if p.follow:
             cx, cy = np.mean([r.x[:2] for r in self.runs], axis=0)
             self.ax_xy.set_xlim(cx - p.view, cx + p.view)
@@ -183,13 +218,19 @@ class AnimTrajectory:
         n = int(p.window / p.dt)
         tt = np.asarray(self.ts[-n:])
         uu = np.asarray(self.us[-n:])
+        
         for i, ln in enumerate(self.u_lines):
             ln.set_data(tt, uu[:, i])
+            
+        # Draw and autoscale based on active keys
         for r in self.runs:
             for ln, k in zip(r.lines, p.plot_keys):
                 ln.set_data(tt, r.sig[k][-n:])
-        for ax, k in zip((self.ax_a, self.ax_b), p.plot_keys):
+                
+        for ax, k in zip(self.side_axes[:len(p.plot_keys)], p.plot_keys):
             self._fit_y(ax, [r.sig[k][-n:] for r in self.runs])
+            
+        self.ax_a.set_xlim(max(0.0, self.t - p.window), max(p.window, self.t))
         self.ax_u.set_xlim(max(0.0, self.t - p.window), max(p.window, self.t))
         return ()
 

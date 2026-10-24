@@ -39,7 +39,8 @@ class ContinuousSteeringCar(KinematicBase):
         a, u_w = u
         xdot = np.array([s*np.cos(theta), s*np.sin(theta), s*np.tan(phi)/self.L, u_w, a])
         diag = {
-            "x [m]": x[0], "y [m]": x[1],
+            "x [m]": x[0], 
+            "y [m]": x[1],
             "theta [deg]": np.degrees(np.arctan2(np.sin(theta), np.cos(theta))),
             "phi [deg]": np.degrees(phi),
             "v [m/s]": s,
@@ -70,7 +71,8 @@ class SteeringAccelCar(KinematicBase):
         tan_d = np.tan(phi)
         xdot = np.array([s*np.cos(theta), s*np.sin(theta), s*tan_d/self.L, w, alpha, a])
         diag = {
-            "x [m]": x[0], "y [m]": x[1],
+            "x [m]": x[0], 
+            "y [m]": x[1],
             "theta [deg]": np.degrees(np.arctan2(np.sin(theta), np.cos(theta))),
             "phi [deg]": np.degrees(phi),
             "dphi [rad/s]": w,
@@ -109,8 +111,8 @@ class SkiddingCar(DynamicBase):
     def f(self, x, u): 
         theta, omega, v = x[2], x[3], x[4] # heading, angular velocity, lateral velocity
         u_phi = u[0]
-        ff = self.cf * ((v  + self.a * omega ) / self.s + u_phi) # front tire forces
-        fr = self.cr * (v - self.b * omega) / self.s # rear tire forces
+        ff = -self.cf * ((v  + self.a * omega ) / self.s + u_phi) # front tire forces
+        fr = -self.cr * (v - self.b * omega) / self.s # rear tire forces
         xdot = np.array([
             self.s * np.cos(theta) - v * np.sin(theta), 
             self.s * np.sin(theta) + v * np.cos(theta),
@@ -119,7 +121,8 @@ class SkiddingCar(DynamicBase):
             -self.s * omega + (ff + fr) / self.m
         ])
         diag = {
-            "x [m]": x[0], "y [m]": x[1],
+            "x [m]": x[0], 
+            "y [m]": x[1],
             "theta [deg]": np.degrees(np.arctan2(np.sin(theta), np.cos(theta))),
             "v [m/s]": np.hypot(self.s, v),
             "omega [rad/s]": omega,

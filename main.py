@@ -21,15 +21,16 @@ from utils.plots import AnimParams, AnimTrajectory
 
 def main():
     # model = SimpleCar()
-    model = EvenBetterUnicycle()
-    ref = static_point([-20, 10])
-    ctrl = PointTracker(model, ref, PID(kp=2.0, kd=0.5), d=0.8, v_max=3.0)
+    model = SkiddingCar()
+    ref = static_point([100, 50])
+    ctrl = PointTracker(model, ref, PID(kp=1.5, kd=0.7), d=0.5, v_max=3.0)
     AnimTrajectory(
         model, ctrl,
         AnimParams(follow=True, view=20),
-        # For nonholonomic constraint systems use u2 ∈ [0.5, 1.0) 
-        # except for SkiddingCar, study more 
-        u_maxs=[np.array([10., 10.])], ref=ref,
+        # For nonholonomic constraint systems use something like u2 ∈ [0.5, 1.0) 
+        # except for SkiddingCar, it uses a single control steering angle ∼0.6, study more 
+        u_maxs=[np.array([0.6])], 
+        ref=ref,
     ).show()
 
 

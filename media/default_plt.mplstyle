@@ -29,7 +29,7 @@ grid.alpha: 0.25
 grid.linestyle: --
 
 # Default Line Color Cycle (order in which line colors are used)
-axes.prop_cycle: cycler('color', ['1f77b4', 'ff7f0e', '2ca02c', 'd62728', '9467bd', '8c564b'])
+axes.prop_cycle : cycler('color', ['f50101', '0e2eff', '1bff1b', 'f31af7', '000000'])
 
 # Save Settings
 savefig.dpi: 300

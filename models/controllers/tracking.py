@@ -98,7 +98,9 @@ class SteeringAccelCarInput:              # x = [x, y, θ, φ, ω, s],  u = (a, 
 class SkiddingCarInput:
     def __init__(self, model, delta_max=0.15) -> None:
         L = model.a + model.b
+        # understeer gradient
         K = model.m * (model.b / model.cf - model.a / model.cr) / L
+        # feedforward steering gain based on speed and slip
         self.gain = (L + K * model.s ** 2) / model.s
         self.delta_max = delta_max
 
@@ -144,9 +146,13 @@ class PointTracker(Controller):
         r, rdot = self.ref(t)
 
         # 2-DOF PD control: feedforward plus feedback PD (desired velocity vector)
-        pdot = rdot + self.pid(t, r - p)
+        error = r - p
+        pid = self.pid(t, error)
+        pdot = rdot + pid
+
+        print(f"Instant {int(t)}. Error: {np.round(error, 4)} | PID out: {np.round(error, 4)} | at t={t:.2f}")
         
-        n = np.linalg.norm(pdot)
+        n = np.linalg.norm(pdot, 2)
         if n > self.v_max:
             pdot = pdot * self.v_max / n
 
