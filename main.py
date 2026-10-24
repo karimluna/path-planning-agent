@@ -47,9 +47,9 @@ REGISTRY: dict[str, Spec] = {
     "even-better-unicycle":    Spec(EvenBetterUnicycle,     (5, 5),      (2, 1),     0.3, 10, aliases=("ebu",)),
     "ddr":                     Spec(DifferentialDriveRobot, (30, 30),    (10, 10),   0.3, 5),
     "smooth-ddr":              Spec(SmoothDDR,              (120, 120),   (10, 10),   0.3, 5),
-    "simple-car":              Spec(SimpleCar,              (3, 0.6),    (2, 0.4),   0.6, 20, (20.0, 10.0), aliases=("car",)),
-    "continuous-steering-car": Spec(ContinuousSteeringCar,  (5, 1.0),    (2, 0.4),   0.6, 20, (20.0, 10.0)),
-    "steering-accel-car":      Spec(SteeringAccelCar,       (5, 10),     (2, 0.4),   0.6, 20, (20.0, 10.0)),
+    "simple-car":              Spec(SimpleCar,              (7, 0.6),    (2, 0.4),   0.6, 20, (20.0, 10.0), aliases=("car",)),
+    "continuous-steering-car": Spec(ContinuousSteeringCar,  (7, 1.0),    (2, 0.4),   0.6, 20, (20.0, 10.0)),
+    "steering-accel-car":      Spec(SteeringAccelCar,       (7, 10),     (2, 0.4),   0.6, 20, (20.0, 10.0)),
     "skidding-car":            Spec(SkiddingCar,            (0.15,),     (0.05,),    3.0, 150, (100.0, 50.0),
                                     aliases=("skid",)),
 }
