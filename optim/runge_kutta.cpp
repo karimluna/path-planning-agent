@@ -43,6 +43,7 @@ std::pair<Vec, py::object> rungeKutta4Step(
     return {next_state, diag};
 }
 
+
 PYBIND11_MODULE(runge_kutta, m, py::mod_gil_not_used()) {
     m.doc() = "High performance RK4 numerical integration module";
 
@@ -58,3 +59,4 @@ PYBIND11_MODULE(runge_kutta, m, py::mod_gil_not_used()) {
     diagnostics).
     )doc");
 }
+

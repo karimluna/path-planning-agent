@@ -124,7 +124,7 @@ def input_map(model, ks=4.0, kw=8.0, kphi=4.0):
         raise ValueError(f"no input map for {n}")
     return table[n]()
  
-# This is the actual controller, from Astrom (2021), a two-degree-of-freedom controller
+# this is the actual controller, from Astrom (2021), a two-degree-of-freedom controller
 class PointTracker(Controller):
     """
     Tracks ref(t) with the point p, d metres ahead of the axle

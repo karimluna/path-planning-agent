@@ -1,6 +1,10 @@
 import time
 import numpy as np
+import matplotlib.pyplot as plt
 from guolao import runge_kutta
+
+plt.style.use("media/default_plt.mplstyle")
+plt.rcParams["text.usetex"] = True
 
 
 class DoubleIntegrator:
@@ -71,6 +75,18 @@ def test_perf():
     print(f"Python step time: {py_elapsed * 1000:.2f} ms ({n_steps / py_elapsed:.0f} steps/s)")
     print(f"C++ step time:    {cpp_elapsed * 1000:.2f} ms ({n_steps / cpp_elapsed:.0f} steps/s)")
     print(f"Speedup ratio:    {py_elapsed / cpp_elapsed:.2f}x")
+
+    plt.figure(figsize=(5, 5))
+    plt.title("RK4 simulation time per 10,000 steps")
+    plt.bar(["Python", "C++ binding"], [py_elapsed * 1000, cpp_elapsed * 1000], color=["#3DC000", "#B70000"])
+    plt.ylabel("Step time [ms]")
+    plt.show()
+
+    plt.figure(figsize=(5, 5))
+    plt.title("RK4 step/s")
+    plt.bar(["Python", "C++ binding"], [n_steps / py_elapsed, n_steps / cpp_elapsed], color=["#3DC000", "#B70000"])
+    plt.ylabel("steps/s")
+    plt.show()
 
 
 if __name__ == "__main__":

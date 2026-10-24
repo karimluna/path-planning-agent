@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib.gridspec import GridSpec
+from matplotlib.animation import PillowWriter
 from pydantic import Field
 from pydantic.dataclasses import dataclass
 
@@ -238,6 +239,6 @@ class AnimTrajectory:
         self.anim = FuncAnimation(
             self.fig, self.update,
             interval=int(self.params.dt * 1000),
-            blit=False, cache_frame_data=False,
+            blit=False, cache_frame_data=False
         )
         plt.show()
