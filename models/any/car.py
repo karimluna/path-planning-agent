@@ -1,3 +1,5 @@
+'''Adding integrator models actuator inertia.'''
+
 import numpy as np
 from models.base import KinematicBase, DynamicBase
 
@@ -96,9 +98,9 @@ class SkiddingCar(DynamicBase):
     n_state, n_control = 5, 1
 
     def __init__(
-            self, m: float = 1460, L: float = 3.0,
-            cf: int = 17_000, cr: int = 20_000, a: float = 1.2,
-            b: float = 1.5, I: float = 2170, s: float = 27) -> None:
+            self, m: float = 1460, cf: int = 17_000, 
+            cr: int = 20_000, a: float = 1.2, b: float = 1.5, 
+            I: float = 2170, s: float = 27) -> None:
         self.m  = m     # [kg]
         self.cf = cf    # [-]
         self.cr = cr    # [-]
@@ -111,8 +113,8 @@ class SkiddingCar(DynamicBase):
     def f(self, x, u): 
         theta, omega, v = x[2], x[3], x[4] # heading, angular velocity, lateral velocity
         u_phi = u[0]
-        ff = -self.cf * ((v  + self.a * omega ) / self.s + u_phi) # front tire forces
-        fr = -self.cr * (v - self.b * omega) / self.s # rear tire forces
+        ff = -self.cf * ((v  + self.a * omega ) / self.s - u_phi) # front tire forces
+        fr = -self.cr * (v - self.b * omega) / self.s             # rear tire forces
         xdot = np.array([
             self.s * np.cos(theta) - v * np.sin(theta), 
             self.s * np.sin(theta) + v * np.cos(theta),
@@ -130,5 +132,58 @@ class SkiddingCar(DynamicBase):
             "Ff [N]": ff, "Fr [N]": fr,
         }
         return xdot, diag
-        
 
+
+class IntegratedSkiddingCar(DynamicBase):
+    n_state, n_control = 6, 2 # x = [X, Y, θ, ω, v_y, v_x], u = [u_phi, a_x]
+
+    def __init__(
+            self, m: float = 1460, cf: int = 17_000, 
+            cr: int = 20_000, a: float = 1.2, b: float = 1.5, 
+            I: float = 2170) -> None:
+        self.m  = m     
+        self.cf = cf    
+        self.cr = cr    
+        self.a  = a     
+        self.b  = b     
+        self.L  = self.a + self.b 
+        self.I  = I     
+        # self.s is removed; velocity is now a state variable.
+
+    def _tire(self, alpha, C, Fz, mu=0.9):   # mu is a new physical parameter
+        Fmax = mu * Fz
+        return -Fmax * np.tanh(C * alpha / Fmax)
+
+    def f(self, x, u): 
+        # Extract states
+        theta, omega, v_y, v_x = x[2], x[3], x[4], x[5] 
+        # Extract controls
+        u_phi, a_x = u[0], u[1]
+
+        # Prevent division by zero when calculating slip angles at low speeds
+        v_x_safe = max(v_x, 0.1)
+
+        # Front and rear tire forces (using v_x instead of s)
+        ff = self._tire((v_y + self.a*omega)/v_x_safe - u_phi, self.cf, self.m*9.81*self.b/self.L)
+        fr = self._tire((v_y - self.b*omega)/v_x_safe, self.cr, self.m*9.81*self.a/self.L)
+        
+        xdot = np.array([
+            v_x * np.cos(theta) - v_y * np.sin(theta),   # X_dot
+            v_x * np.sin(theta) + v_y * np.cos(theta),   # Y_dot
+            omega,                                       # theta_dot
+            (self.a * ff - self.b * fr) / self.I,        # omega_dot
+            -v_x * omega + (ff + fr) / self.m,           # v_y_dot (lateral acceleration)
+            a_x + v_y * omega                            # v_x_dot (longitudinal accel + Coriolis)
+        ])
+        
+        diag = {
+            "x [m]": x[0], 
+            "y [m]": x[1],
+            "theta [deg]": np.degrees(np.arctan2(np.sin(theta), np.cos(theta))),
+            "v_x [m/s]": v_x,
+            "v_y [m/s]": v_y,
+            "omega [rad/s]": omega,
+            "beta [deg]": np.degrees(np.arctan2(v_y, v_x_safe)),
+            "Ff [N]": ff, "Fr [N]": fr,
+        }
+        return xdot, diag

@@ -9,6 +9,9 @@ from models.base import Controller
 Ref = Callable[[float], tuple]
 
 
+# Recall here we use extensively the `__call__`` methods as we need to retain states between
+# calls, i.e., it allows a class to act as a function
+
 def static_point(p) -> Ref:
     p, z = np.asarray(p, float), np.zeros(2)
     return lambda t: (p, z)
@@ -95,17 +98,48 @@ class SteeringAccelCarInput:              # x = [x, y, θ, φ, ω, s],  u = (a, 
         dphi_des = self.kphi * (phi_des - x[3])
         return np.array([self.ks * (v - x[5]), self.kw * (dphi_des - x[4])])
 
+
 class SkiddingCarInput:
     def __init__(self, model, delta_max=0.15) -> None:
-        L = model.a + model.b
         # understeer gradient
-        K = model.m * (model.b / model.cf - model.a / model.cr) / L
+        K = model.m * (model.b / model.cf - model.a / model.cr) / model.L
         # feedforward steering gain based on speed and slip
-        self.gain = (L + K * model.s ** 2) / model.s
+        self.gain = (model.L + K * model.s ** 2) / model.s
         self.delta_max = delta_max
+
+    def lateral_velocity(self, x):
+        return x[4]
 
     def __call__(self, x, v, w):
         return np.array([np.clip(self.gain * w, -self.delta_max, self.delta_max)])
+
+
+class IntegratedSkiddingCarInput:
+    def __init__(self, model, delta_max=0.15, a_max=5.0, k_v=2.0) -> None:
+        self.model = model
+        self.delta_max = delta_max
+        self.a_max = a_max
+        self.k_v = k_v  # Proportional gain for velocity tracking
+        
+        # Understeer gradient (constant)
+        self.K = model.m * (model.b / model.cf - model.a / model.cr) / model.L
+
+    def lateral_velocity(self, x):
+        return x[4]
+
+    def __call__(self, x, v, w):
+        v_x = x[5]
+        
+        # Prevent division by zero at very low speeds
+        v_x_safe = max(v_x, 0.1) 
+        gain = (self.model.L + self.K * v_x_safe ** 2) / v_x_safe
+        u_phi = np.clip(gain * w, -self.delta_max, self.delta_max)
+        
+        a_x = np.clip(self.k_v * (v - v_x), -self.a_max, self.a_max)
+        
+        # Return both control inputs: [steering, acceleration]
+        return np.array([u_phi, a_x])
+
  
 def input_map(model, ks=4.0, kw=8.0, kphi=4.0):
     n = type(model).__name__
@@ -119,6 +153,7 @@ def input_map(model, ks=4.0, kw=8.0, kphi=4.0):
         "ContinuousSteeringCar": lambda: ContinuousSteeringCarInput(model.L, ks, kphi),
         "SteeringAccelCar": lambda: SteeringAccelCarInput(model.L, ks, kphi, kw),
         "SkiddingCar": lambda: SkiddingCarInput(model),
+        "IntegratedSkiddingCar": lambda: IntegratedSkiddingCarInput(model,)
     }
     if n not in table:
         raise ValueError(f"no input map for {n}")
@@ -134,6 +169,7 @@ class PointTracker(Controller):
                  v_max: float = np.inf, **gains) -> None:
         self.ref, self.pid, self.d, self.v_max = ref, pid, d, v_max
         self.input_map = input_map(model, **gains)
+        self.vy = getattr(model, "lateral_velocity", lambda x: 0.0)  # 0 for no-slip models
  
     def reset(self) -> None:
         self.pid.reset()
@@ -159,5 +195,5 @@ class PointTracker(Controller):
         # project pdot onto e_par so we get a scalar v
         v = c * pdot[0] + s * pdot[1]
         # project pdot onto e_perp / d also get a scalar w
-        w = (-s * pdot[0] + c * pdot[1]) / self.d
+        w = (-s * pdot[0] + c * pdot[1] - self.vy(x)) / self.d
         return self.input_map(x, v, w)

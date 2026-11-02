@@ -13,7 +13,9 @@ Examples
 | :---: | :---: |
 | <img src="media/cont_steering_car.gif" alt="Simulation 1" width="100%"> | <img src="media/better_unicycle.gif" alt="Simulation 2" width="100%"> |
 | <img src="media/smooth_ddr.gif" alt="Simulation 3" width="100%"> | <img src="media/steering_accel_car.gif" alt="Simulation 4" width="100%"> |
-| <img src="media/simple_car.gif" alt="Simulation 3" width="100%"> | <img src="media/even_better_unicycle.gif" alt="Simulation 4" width="100%"> |
+| <img src="media/simple_car.gif" alt="Simulation 5" width="100%"> | <img src="media/even_better_unicycle.gif" alt="Simulation 6" width="100%"> |
+| <img src="media/skidding_car.gif" alt="Simulation 7" width="100%"> | <img src="media/int_skidding_car.gif" alt="Simulation 8" width="100%"> |
+
 
 
 

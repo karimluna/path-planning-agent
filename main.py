@@ -1,4 +1,4 @@
-"""Simulator CLI: send a kinematic model to a point, make it follow a circle, or drive it by hand.
+"""Simulator CLI: send a kinematic model to a point, make it follow a circle, or drive it by hand
 
 Examples
   python main.py unicycle                          # go to the default target of that model
@@ -19,8 +19,7 @@ import sys
 from dataclasses import dataclass
 
 import numpy as np
-
-from models.any.car import ContinuousSteeringCar, SimpleCar, SkiddingCar, SteeringAccelCar
+from models.any.car import ContinuousSteeringCar, SimpleCar, SkiddingCar, SteeringAccelCar, IntegratedSkiddingCar
 from models.any.ddr import DifferentialDriveRobot, SmoothDDR
 from models.any.unicycle import BetterUnicycle, EvenBetterUnicycle, Unicycle
 from models.controllers.keyboard import KeyboardController
@@ -47,11 +46,11 @@ REGISTRY: dict[str, Spec] = {
     "even-better-unicycle":    Spec(EvenBetterUnicycle,     (5, 5),      (2, 1),     0.3, 10, aliases=("ebu",)),
     "ddr":                     Spec(DifferentialDriveRobot, (30, 30),    (10, 10),   0.3, 5),
     "smooth-ddr":              Spec(SmoothDDR,              (120, 120),   (10, 10),   0.3, 5),
-    "simple-car":              Spec(SimpleCar,              (7, 0.6),    (2, 0.4),   0.6, 20, (20.0, 10.0), aliases=("car",)),
-    "continuous-steering-car": Spec(ContinuousSteeringCar,  (7, 1.0),    (2, 0.4),   0.6, 20, (20.0, 10.0)),
-    "steering-accel-car":      Spec(SteeringAccelCar,       (7, 10),     (2, 0.4),   0.6, 20, (20.0, 10.0)),
-    "skidding-car":            Spec(SkiddingCar,            (0.15,),     (0.05,),    3.0, 150, (100.0, 50.0),
-                                    aliases=("skid",)),
+    "simple-car":              Spec(SimpleCar,              (7, 0.6),    (2, 0.4),   0.6, 20,    (20.0, 10.0), aliases=("car",)),
+    "continuous-steering-car": Spec(ContinuousSteeringCar,  (7, 1.0),    (2, 0.4),   0.6, 20,    (20.0, 10.0)),
+    "steering-accel-car":      Spec(SteeringAccelCar,       (7, 10),     (2, 0.4),   0.6, 20,    (20.0, 10.0)),
+    "skidding-car":            Spec(SkiddingCar,            (0.15,),       (0.05,),       3.0, 150, (100.0, 50.0), aliases=("skid",)),
+    "int-skidding-car":        Spec(IntegratedSkiddingCar,  (2.0, 5.0),   (0.05, 1.0),   3.0, 150, (100.0, 50.0), aliases=("iskid",)),
 }
 ALIASES = {a: name for name, s in REGISTRY.items() for a in (name, *s.aliases)}
 
