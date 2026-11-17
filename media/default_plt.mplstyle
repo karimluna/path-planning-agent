@@ -14,6 +14,7 @@ axes.edgecolor: black         # Color of the plot border (spines)
 axes.labelcolor: black        # Color of the axis labels
 xtick.color: black            # Color of x-axis ticks and labels
 ytick.color: black            # Color of y-axis ticks and labels
+legend.framealpha: 0.0
 
 # Axis and Spine Settings
 axes.spines.top: True
